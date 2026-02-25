@@ -10,6 +10,18 @@ app.use(express.json());
 
 const wordCounter = {};
 
+const incrementWordCount = (word) => {
+  const cleanWord = word.toLowerCase();
+
+  if (wordCounter[cleanWord]) {
+    wordCounter[cleanWord]++;
+  } else {
+    wordCounter[cleanWord] = 1;
+  }
+
+  return wordCounter[cleanWord];
+};
+
 //EX1:
 app.get("/sanity", (req, res) => {
   res.send("Server is up and running");
@@ -34,15 +46,31 @@ app.post("/addWord", (req, res) => {
     res.status(400).json({ error: "Bad request: no word provided in JSON body" });
   }
 
-  const cleanWord = word.toLowerCase();
+  const newWordCount = incrementWordCount(word);
 
-  if (wordCounter[cleanWord]) {
-    wordCounter[cleanWord]++;
-  } else {
-    wordCounter[cleanWord] = 1;
-  }
+  res.status(201).json({ text: `Added '${word}'`, currentCount: newWordCount });
+});
 
-  res.status(201).json({ text: `Added '${word}', currentCount: ${wordCounter[word]}` });
+//EX4:
+app.post("/addSentence/:sentence", (req, res) => {
+  const sentence = req.params.sentence;
+  let numNewWords = 0;
+  let numOldWords = 0;
+
+  const words = sentence.split(" ");
+
+  words.forEach((word) => {
+    const cleanWord = word.toLowerCase();
+
+    if (wordCounter[cleanWord] > 0) {
+      numOldWords++;
+    } else {
+      numNewWords++;
+    }
+    incrementWordCount(cleanWord);
+  });
+
+  res.status(201).json({ text: `Added ${numNewWords} words, ${numOldWords} already existed`, currentCount: -1 });
 });
 
 app.listen(PORT, () => {
