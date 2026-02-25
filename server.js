@@ -48,6 +48,28 @@ app.get("/popular", (req, res) => {
   res.json({ text: popularWord, count });
 });
 
+//EXT3:
+app.get("/topFive", (req, res) => {
+  const wordsArray = Object.entries(wordCounter);
+
+  if (wordsArray.length === 0) {
+    return res.status(404).json({ error: "No words in database." });
+  }
+
+  const sortedWords = wordsArray.sort((a, b) => {
+    return b[1] - a[1];
+  });
+
+  const topFiveWords = sortedWords.slice(0, 5).map((pair) => {
+    const word = pair[0];
+    const count = pair[1];
+
+    return { [word]: count };
+  });
+
+  res.json({ ranking: topFiveWords });
+});
+
 //EX2:
 app.get("/:word", (req, res) => {
   const word = req.params.word;
