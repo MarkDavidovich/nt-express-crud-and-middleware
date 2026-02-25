@@ -27,6 +27,27 @@ app.get("/sanity", (req, res) => {
   res.send("Server is up and running");
 });
 
+//EXT2: (It's here because it has to be before the optional route in EX2)
+app.get("/popular", (req, res) => {
+  const words = Object.keys(wordCounter);
+
+  if (words.length === 0) {
+    return res.status(404).json({ error: "No words in database." });
+  }
+
+  let popularWord = null;
+  let count = 0;
+
+  for (const word in wordCounter) {
+    if (wordCounter[word] > count) {
+      popularWord = word;
+      count = wordCounter[word];
+    }
+  }
+
+  res.json({ text: popularWord, count });
+});
+
 //EX2:
 app.get("/:word", (req, res) => {
   const word = req.params.word;
@@ -57,6 +78,7 @@ app.post("/addSentence/:sentence", (req, res) => {
   let numNewWords = 0;
   let numOldWords = 0;
 
+  //EXT1:
   const cleanSentence = sentence.replace(/[^a-zA-Z\s]/g, "");
 
   const words = cleanSentence.split(" ");
@@ -75,10 +97,6 @@ app.post("/addSentence/:sentence", (req, res) => {
   res.status(201).json({ text: `Added ${numNewWords} words, ${numOldWords} already existed`, currentCount: -1 });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is up on http://localhost:${PORT}`);
-});
-
 //EX5:
 app.delete("/deleteWord/:word", (req, res) => {
   const word = req.params.word;
@@ -91,4 +109,8 @@ app.delete("/deleteWord/:word", (req, res) => {
   delete wordCounter[cleanWord];
 
   res.json({ text: `${cleanWord} was successfuly removed` });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is up on http://localhost:${PORT}`);
 });
