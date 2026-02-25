@@ -43,7 +43,7 @@ app.post("/addWord", (req, res) => {
   const word = req.body.word;
 
   if (!word) {
-    res.status(400).json({ error: "Bad request: no word provided in JSON body" });
+    return res.status(400).json({ error: "Bad request: no word provided in JSON body" });
   }
 
   const newWordCount = incrementWordCount(word);
@@ -75,4 +75,18 @@ app.post("/addSentence/:sentence", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is up on http://localhost:${PORT}`);
+});
+
+//EX5:
+app.delete("/deleteWord/:word", (req, res) => {
+  const word = req.params.word;
+  const cleanWord = word.toLowerCase();
+
+  if (!wordCounter[cleanWord]) {
+    return res.status(404).json({ error: `Deletion failed: '${cleanWord}' was not found in the database.` });
+  }
+
+  delete wordCounter[cleanWord];
+
+  res.json({ text: `${cleanWord} was successfuly removed` });
 });
