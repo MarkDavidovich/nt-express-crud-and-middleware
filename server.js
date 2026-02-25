@@ -57,7 +57,9 @@ app.post("/addSentence/:sentence", (req, res) => {
   let numNewWords = 0;
   let numOldWords = 0;
 
-  const words = sentence.split(" ");
+  const cleanSentence = sentence.replace(/[^a-zA-Z\s]/g, "");
+
+  const words = cleanSentence.split(" ");
 
   words.forEach((word) => {
     const cleanWord = word.toLowerCase();
