@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const wordRouter = require("./routes/wordRouter");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -8,130 +9,7 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-const wordCounter = {};
-
-const incrementWordCount = (word) => {
-  const cleanWord = word.toLowerCase();
-
-  if (wordCounter[cleanWord]) {
-    wordCounter[cleanWord]++;
-  } else {
-    wordCounter[cleanWord] = 1;
-  }
-
-  return wordCounter[cleanWord];
-};
-
-//EX1:
-app.get("/sanity", (req, res) => {
-  res.send("Server is up and running");
-});
-
-//EXT2: (It's here because it has to be before the optional route in EX2)
-app.get("/popular", (req, res) => {
-  const words = Object.keys(wordCounter);
-
-  if (words.length === 0) {
-    return res.status(404).json({ error: "No words in database." });
-  }
-
-  let popularWord = null;
-  let count = 0;
-
-  for (const word in wordCounter) {
-    if (wordCounter[word] > count) {
-      popularWord = word;
-      count = wordCounter[word];
-    }
-  }
-
-  res.json({ text: popularWord, count });
-});
-
-//EXT3:
-app.get("/topFive", (req, res) => {
-  const wordsArray = Object.entries(wordCounter);
-
-  if (wordsArray.length === 0) {
-    return res.status(404).json({ error: "No words in database." });
-  }
-
-  const sortedWords = wordsArray.sort((a, b) => {
-    return b[1] - a[1];
-  });
-
-  const topFiveWords = sortedWords.slice(0, 5).map((pair) => {
-    const word = pair[0];
-    const count = pair[1];
-
-    return { [word]: count };
-  });
-
-  res.json({ ranking: topFiveWords });
-});
-
-//EX2:
-app.get("/:word", (req, res) => {
-  const word = req.params.word;
-
-  if (wordCounter[word]) {
-    res.json({ count: wordCounter[word] });
-  } else {
-    res.json({ count: 0 });
-  }
-});
-
-//EX3:
-app.post("/addWord", (req, res) => {
-  const word = req.body.word;
-
-  if (!word) {
-    return res.status(400).json({ error: "Bad request: no word provided in JSON body" });
-  }
-
-  const newWordCount = incrementWordCount(word);
-
-  res.status(201).json({ text: `Added '${word}'`, currentCount: newWordCount });
-});
-
-//EX4:
-app.post("/addSentence/:sentence", (req, res) => {
-  const sentence = req.params.sentence;
-  let numNewWords = 0;
-  let numOldWords = 0;
-
-  //EXT1:
-  const cleanSentence = sentence.replace(/[^a-zA-Z\s]/g, "");
-
-  const words = cleanSentence.split(" ");
-
-  words.forEach((word) => {
-    const cleanWord = word.toLowerCase();
-
-    if (wordCounter[cleanWord] > 0) {
-      numOldWords++;
-    } else {
-      numNewWords++;
-    }
-    incrementWordCount(cleanWord);
-  });
-
-  res.status(201).json({ text: `Added ${numNewWords} words, ${numOldWords} already existed`, currentCount: -1 });
-});
-
-//EX5:
-app.delete("/deleteWord/:word", (req, res) => {
-  const word = req.params.word;
-  const cleanWord = word.toLowerCase();
-
-  if (!wordCounter[cleanWord]) {
-    return res.status(404).json({ error: `Deletion failed: '${cleanWord}' was not found in the database.` });
-  }
-
-  delete wordCounter[cleanWord];
-
-  res.json({ text: `${cleanWord} was successfuly removed` });
-});
+app.use("/wordCounter", wordRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is up on http://localhost:${PORT}`);
