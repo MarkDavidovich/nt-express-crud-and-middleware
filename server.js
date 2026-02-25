@@ -21,9 +21,28 @@ app.get("/:word", (req, res) => {
 
   if (wordCounter[word]) {
     res.json({ count: wordCounter[word] });
+  } else {
+    res.json({ count: 0 });
+  }
+});
+
+//EX3:
+app.post("/addWord", (req, res) => {
+  const word = req.body.word;
+
+  if (!word) {
+    res.status(400).json({ error: "Bad request: no word provided in JSON body" });
   }
 
-  res.json({ count: 0 });
+  const cleanWord = word.toLowerCase();
+
+  if (wordCounter[cleanWord]) {
+    wordCounter[cleanWord]++;
+  } else {
+    wordCounter[cleanWord] = 1;
+  }
+
+  res.status(201).json({ text: `Added '${word}', currentCount: ${wordCounter[word]}` });
 });
 
 app.listen(PORT, () => {
